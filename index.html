@@ -3,9 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>A-Frame 3D Thick Text Flying in Starry Sky</title>
-    <!-- A-Frame Library -->
+    <title>A-Frame Ultra-Thick 3D Text Flying in Space</title>
+    <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- 3D立体テキスト生成用コンポーネント (troika-3d-text) -->
+    <script src="https://unpkg.com/aframe-troika-text/dist/aframe-troika-text.min.js"></script>
     <style>
       body {
         margin: 0;
@@ -16,139 +18,113 @@
   </head>
   <body>
     <script>
-      // 厚みのある完全3Dテキストを生成・動かすカスタムコンポーネント
+      // 激厚3Dテキスト群を動的に生成・制御するコンポーネント
       AFRAME.registerComponent('flying-thick-texts', {
         schema: {
-          count: { type: 'int', default: 35 } // 生成する3Dテキストの数
+          count: { type: 'int', default: 25 }
         },
         init: function () {
           this.texts = [];
-          const sceneEl = this.el;
-
-          // Three.js の FontLoader を使って3Dフォントデータを読み込み
-          const loader = new THREE.FontLoader();
           
-          // A-Frame/Three.js 標準提供のフォントデータ
-          loader.load(
-            'https://cdn.jsdelivr.net/npm/three@0.150.0/examples/fonts/helvetiker_bold.typeface.json',
-            (font) => {
-              this.create3DTexts(font);
-            }
-          );
-        },
-
-        create3DTexts: function (font) {
-          // 鮮やかで明るいネオンカラーリスト
+          // 明るく綺麗な発光系カラー
           const colors = [
-            0x00ffff, // ネオンシアン
-            0xff007f, // ネオンピンク
-            0xffd700, // ゴールド
-            0x00ff7f, // グリーン
-            0xff4500, // オレンジ
-            0xa020f0, // パープル
-            0xffffff  // ホワイト
+            '#00FFFF', // シアン
+            '#FF007F', // ピンク
+            '#FFD700', // ゴールド
+            '#00FF7F', // グリーン
+            '#FF4500', // オレンジ
+            '#A020F0', // パープル
+            '#FFFFFF'  // ホワイト
           ];
 
           for (let i = 0; i < this.data.count; i++) {
-            // 1. 厚み（奥行き）のある3Dジオメトリを作成
-            const textGeometry = new THREE.TextGeometry('Hello world!', {
-              font: font,
-              size: 4.5,            // 文字の大きさ
-              height: 1.5,          // ★文字の「厚み（押し出しの長さ）」
-              curveSegments: 12,    // 曲線の滑らかさ
-              bevelEnabled: true,   // 面取り（ベベル）を有効化して立体感を強調
-              bevelThickness: 0.3, // 面取りの厚み
-              bevelSize: 0.2,      // 面取りの幅
-              bevelOffset: 0,
-              bevelSegments: 5
-            });
+            const textEntity = document.createElement('a-troika-text');
 
-            // ジオメトリの中心軸を文字の中央に調整（回転を綺麗に見せるため）
-            textGeometry.center();
+            const color = colors[Math.floor(Math.random() * colors.length)];
 
-            // 2. 光を反射してきらめく3Dマテリアル（材質）の設定
-            const colorVal = colors[Math.floor(Math.random() * colors.length)];
-            const material = new THREE.MeshStandardMaterial({
-              color: colorVal,
-              emissive: colorVal,        // 自ら光を放つ発光色
-              emissiveIntensity: 0.6,    // 発光の強さ（明るく見せる）
-              roughness: 0.2,
-              metalness: 0.8
-            });
+            // 基本設定
+            textEntity.setAttribute('value', 'Hello world!');
+            textEntity.setAttribute('align', 'center');
+            textEntity.setAttribute('color', color);
 
-            // 3. メッシュ作成
-            const mesh = new THREE.Mesh(textGeometry, material);
+            // ★文字サイズの設定 (巨大化)
+            textEntity.setAttribute('font-size', '12');
 
-            // 初期位置をランダムに配置
-            const posX = (Math.random() - 0.5) * 140;
-            const posY = (Math.random() - 0.5) * 140;
-            const posZ = (Math.random() - 0.5) * 140;
-            mesh.position.set(posX, posY, posZ);
+            // ★激厚（極厚）の奥行き設定
+            // extrude-depth で文字の厚みを超巨大に（通常の何十倍もの厚さ）
+            textEntity.setAttribute('extrude-depth', '4.0'); 
 
-            // 初期回転
-            mesh.rotation.x = Math.random() * Math.PI * 2;
-            mesh.rotation.y = Math.random() * Math.PI * 2;
+            // マテリアル・発光設定
+            textEntity.setAttribute('material', `color: ${color}; roughness: 0.1; metalness: 0.8;`);
 
-            // 移動および回転スピード
-            mesh.userData = {
-              speedX: (Math.random() - 0.5) * 0.25,
-              speedY: (Math.random() - 0.5) * 0.25,
-              speedZ: (Math.random() - 0.5) * 0.25,
-              rotSpeedX: (Math.random() - 0.5) * 0.02,
-              rotSpeedY: (Math.random() - 0.5) * 0.02,
-              rotSpeedZ: (Math.random() - 0.5) * 0.02
+            // 初期位置をランダム配置
+            const posX = (Math.random() - 0.5) * 200;
+            const posY = (Math.random() - 0.5) * 200;
+            const posZ = (Math.random() - 0.5) * 200;
+            textEntity.setAttribute('position', `${posX} ${posY} ${posZ}`);
+
+            // 回転・移動パラメータ
+            textEntity.userData = {
+              speedX: (Math.random() - 0.5) * 0.3,
+              speedY: (Math.random() - 0.5) * 0.3,
+              speedZ: (Math.random() - 0.5) * 0.3,
+              rotSpeedX: (Math.random() - 0.5) * 1.5,
+              rotSpeedY: (Math.random() - 0.5) * 1.5,
+              rotSpeedZ: (Math.random() - 0.5) * 1.5
             };
 
-            // A-Frameの要素に Three.js Object3D を直接アタッチ
-            this.el.object3D.add(mesh);
-            this.texts.push(mesh);
+            this.el.appendChild(textEntity);
+            this.texts.push(textEntity);
           }
         },
 
-        // 毎フレームの移動・回転アニメーション
         tick: function () {
-          if (this.texts.length === 0) return;
+          const bounds = 150; // ループ範囲
 
-          const bounds = 90; // 画面外ループの境界
+          this.texts.forEach((textEntity) => {
+            const pos = textEntity.getAttribute('position');
+            const rot = textEntity.getAttribute('rotation');
+            const data = textEntity.userData;
 
-          this.texts.forEach((mesh) => {
-            const data = mesh.userData;
-
-            // 位置更新
-            mesh.position.x += data.speedX;
-            mesh.position.y += data.speedY;
-            mesh.position.z += data.speedZ;
+            // 位置移動
+            let newX = pos.x + data.speedX;
+            let newY = pos.y + data.speedY;
+            let newZ = pos.z + data.speedZ;
 
             // 境界チェック＆反対側から再登場
-            if (Math.abs(mesh.position.x) > bounds) mesh.position.x *= -1;
-            if (Math.abs(mesh.position.y) > bounds) mesh.position.y *= -1;
-            if (Math.abs(mesh.position.z) > bounds) mesh.position.z *= -1;
+            if (Math.abs(newX) > bounds) newX = -newX;
+            if (Math.abs(newY) > bounds) newY = -newY;
+            if (Math.abs(newZ) > bounds) newZ = -newZ;
 
-            // 回転更新
-            mesh.rotation.x += data.rotSpeedX;
-            mesh.rotation.y += data.rotSpeedY;
-            mesh.rotation.z += data.rotSpeedZ;
+            textEntity.setAttribute('position', `${newX} ${newY} ${newZ}`);
+
+            // 回転移動（回転することで圧倒的な厚みが確認できます）
+            textEntity.setAttribute('rotation', {
+              x: rot.x + data.rotSpeedX,
+              y: rot.y + data.rotSpeedY,
+              z: rot.z + data.rotSpeedZ
+            });
           });
         }
       });
     </script>
 
     <a-scene>
-      <!-- 深い漆黒の宇宙背景 -->
-      <a-sky color="#020208"></a-sky>
+      <!-- 漆黒の宇宙空間 -->
+      <a-sky color="#010104"></a-sky>
 
-      <!-- 厚みのある立体3Dテキスト群 -->
-      <a-entity flying-thick-texts="count: 35"></a-entity>
-
-      <!-- 星屑背景（粒子） -->
+      <!-- 星屑背景 -->
       <a-entity id="stars"></a-entity>
 
-      <!-- 立体感を際立たせる多方向照明 -->
-      <a-light type="ambient" color="#ffffff" intensity="1.2"></a-light>
-      <a-light type="directional" color="#ffffff" intensity="2" position="1 2 3"></a-light>
-      <a-light type="point" color="#00ffff" intensity="3" position="0 0 0" distance="150"></a-light>
+      <!-- 激厚・巨大3Dテキスト群 -->
+      <a-entity flying-thick-texts="count: 25"></a-entity>
 
-      <!-- カメラ・操作設定 -->
+      <!-- 立体感を際立たせるライティング -->
+      <a-light type="ambient" color="#FFFFFF" intensity="1.0"></a-light>
+      <a-light type="directional" color="#FFFFFF" intensity="2.5" position="1 2 1"></a-light>
+      <a-light type="point" color="#FFFFFF" intensity="2" position="0 0 0" distance="200"></a-light>
+
+      <!-- カメラ設定 -->
       <a-entity id="rig" position="0 0 0">
         <a-camera look-controls wasd-controls position="0 0 0">
           <a-cursor color="#FFFFFF" opacity="0.6"></a-cursor>
@@ -156,16 +132,16 @@
       </a-entity>
     </a-scene>
 
-    <!-- 背景の星屑生成処理 -->
+    <!-- 星屑生成処理 -->
     <script>
       const starsContainer = document.getElementById('stars');
-      const starCount = 450;
+      const starCount = 500;
       for (let i = 0; i < starCount; i++) {
         const star = document.createElement('a-sphere');
         const radius = Math.random() * 0.2 + 0.05;
-        const x = (Math.random() - 0.5) * 250;
-        const y = (Math.random() - 0.5) * 250;
-        const z = (Math.random() - 0.5) * 250;
+        const x = (Math.random() - 0.5) * 350;
+        const y = (Math.random() - 0.5) * 350;
+        const z = (Math.random() - 0.5) * 350;
         
         star.setAttribute('radius', radius);
         star.setAttribute('position', `${x} ${y} ${z}`);
